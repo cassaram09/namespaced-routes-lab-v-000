@@ -1,14 +1,8 @@
 class ArtistsController < ApplicationController
   def index
-    #if @Preference.first.nil?
-    #  if Preference.first.artist_sort_order == "ASC"
-    #    @artists = Artist.all.sort_by{|s| s.name.downcase }
-    #  else
-    #    @artists = Artist.all.sort_by{|s| s.name.downcase }.reverse
-    #  end
-    #else
-      @artists = Artist.all
-    #end
+    pref = Preference.first_or_create(artist_sort_order: "ASC")
+    pref.artist_sort_order = "ASC" if pref.artist_sort_order.blank?
+    @artists = Artist.all.order(name: pref.artist_sort_order)
   end
 
   def show
@@ -16,10 +10,11 @@ class ArtistsController < ApplicationController
   end
 
   def new
-    if Preference.first.allow_create_artists == true
-      @artist = Artist.new
-    else
+    pref = Preference.first
+    if pref && !pref.allow_create_artists
       redirect_to artists_path
+    else
+      @artist = Artist.new
     end
   end
 
